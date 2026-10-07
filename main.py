@@ -41,7 +41,7 @@ PAGE = """<!DOCTYPE html>
 </head>
 <body>
 <div class="wrap">
-  <header><span>Sample / No. 01</span><span>{{TIME}}</span></header>
+  <header><span>Abyan Zaky Kusuma</span><span>{{TIME}}</span></header>
 
   <h1>Catatan dari <em>server.</em></h1>
   <p class="lead">Halaman ini dirender oleh Flask saat kamu membukanya. Semua angka di bawah diambil langsung dari mesin yang melayani permintaanmu.</p>
@@ -60,7 +60,7 @@ PAGE = """<!DOCTYPE html>
     <div class="r"><dt>Endpoint</dt><dd><a href="/api/hello">/api/hello</a> — versi JSON</dd></div>
   </dl>
 
-  <footer><span>Flask + Vercel</span><span>Muat ulang untuk waktu baru</span></footer>
+  <footer><span>Dibuat oleh Abyan Zaky Kusuma · Flask + Vercel</span><span>Muat ulang untuk waktu baru</span></footer>
 </div>
 </body>
 </html>"""
