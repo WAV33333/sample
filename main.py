@@ -1,5 +1,8 @@
 import sys
+import random
 import platform
+import calendar
+from urllib.parse import unquote
 from datetime import datetime, timezone, timedelta
 
 from flask import Flask, jsonify, request
@@ -32,6 +35,8 @@ PAGE = """<!DOCTYPE html>
        border-bottom:1px solid var(--rule); }
   dt { color:var(--mute); }
   dd { word-break:break-all; }
+  .bar { color:var(--hot); letter-spacing:-1px; }
+  .fact { font-family:Georgia,"Times New Roman",serif; font-size:18px; line-height:1.45; }
   a { color:var(--ink); text-decoration:underline; text-underline-offset:3px; text-decoration-thickness:1px; }
   a:hover { color:var(--hot); }
   footer { margin-top:72px; padding-top:10px; border-top:2px solid var(--rule);
@@ -60,6 +65,24 @@ PAGE = """<!DOCTYPE html>
     <div class="r"><dt>Endpoint</dt><dd><a href="/api/hello">/api/hello</a> — versi JSON</dd></div>
   </dl>
 
+  <h2>Perjalananmu ke server</h2>
+  <dl>
+    <div class="r"><dt>Terdeteksi dari</dt><dd>{{CITY}}, {{COUNTRY}}</dd></div>
+    <div class="r"><dt>Dilayani oleh</dt><dd>Pusat data Vercel <b>{{EDGE}}</b></dd></div>
+  </dl>
+
+  <h2>Tahun {{YEAR}}</h2>
+  <dl>
+    <div class="r"><dt>Hari ke</dt><dd>{{DOY}} dari {{TOTAL}}</dd></div>
+    <div class="r"><dt>Progres</dt><dd><span class="bar">{{BAR}}</span> {{PCT}}%</dd></div>
+    <div class="r"><dt>Sisa</dt><dd>{{LEFT}} hari lagi menuju tahun baru</dd></div>
+  </dl>
+
+  <h2>Fakta acak</h2>
+  <dl>
+    <div class="r"><dt>Tahukah kamu?</dt><dd class="fact">{{FACT}}</dd></div>
+  </dl>
+
   <footer><span>Dibuat oleh Abyan Zaky Kusuma · Flask + Vercel</span><span>Muat ulang untuk waktu baru</span></footer>
 </div>
 </body>
@@ -70,10 +93,36 @@ def esc(s):
     return (str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
 
 
+FACTS = [
+    "Python dinamai dari grup komedi Monty Python, bukan dari ular.",
+    "Bug komputer pertama yang tercatat adalah ngengat sungguhan yang tersangkut di Harvard Mark II pada 1947.",
+    "Flask dirilis pada 2010 oleh Armin Ronacher, awalnya dibuat sebagai lelucon April Mop.",
+    "Surel pertama dikirim oleh Ray Tomlinson pada 1971, dan dialah yang memilih simbol @.",
+    "Program \"Hello, World!\" dipopulerkan oleh buku The C Programming Language terbitan 1978.",
+]
+
+
 @app.route("/")
 def home():
-    now = datetime.now(WIB).strftime("%d %b %Y, %H:%M:%S WIB")
+    dt = datetime.now(WIB)
+    now = dt.strftime("%d %b %Y, %H:%M:%S WIB")
+    total = 366 if calendar.isleap(dt.year) else 365
+    doy = dt.timetuple().tm_yday
+    pct = round(doy / total * 100)
+    filled = round(pct / 100 * 30)
+    bar = "█" * filled + "░" * (30 - filled)
+    edge = request.headers.get("x-vercel-id", "lokal").split("::")[0]
     values = {
+        "{{CITY}}": unquote(request.headers.get("x-vercel-ip-city", "kota tidak diketahui")),
+        "{{COUNTRY}}": request.headers.get("x-vercel-ip-country", "?"),
+        "{{EDGE}}": edge,
+        "{{YEAR}}": dt.year,
+        "{{DOY}}": doy,
+        "{{TOTAL}}": total,
+        "{{BAR}}": bar,
+        "{{PCT}}": pct,
+        "{{LEFT}}": total - doy,
+        "{{FACT}}": random.choice(FACTS),
         "{{TIME}}": now,
         "{{METHOD}}": request.method,
         "{{PATH}}": request.path,
